@@ -11,7 +11,7 @@ public class Neuron {
 		numberOfInputs = arg1;
 		coefficients = new float[numberOfInputs];
 		for (int i = 0; i < numberOfInputs; i++) {
-			coefficients[i] = (float) Math.random();
+			coefficients[i] = (float) Math.random()*2-1;
 		}
 		steps = new float[numberOfInputs];
 		Arrays.fill(steps, 0.1f);

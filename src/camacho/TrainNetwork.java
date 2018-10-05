@@ -86,7 +86,7 @@ public class TrainNetwork {
 		
 
 	}
-
+	
 	public static float decode(byte[] arg1) {
 		float r = arg1[0] / 64f;
 		r += arg1[1];
