@@ -9,7 +9,7 @@ public class TrainNetwork {
 		Test[] tests = null;
 		FileInputStream in = null;
 		try {
-			in = new FileInputStream("D:\\Git\\SineIO\\src\\camacho\\Network.data");
+			in = new FileInputStream("src\\camacho\\Network.data");
 		} catch (FileNotFoundException e) {
 			e.printStackTrace();
 		}
@@ -22,6 +22,7 @@ public class TrainNetwork {
 				e.printStackTrace();
 				n = null;
 			}
+			/* If we have already started training a network (and it is saved to Network.data), we want to read the file and get our data back for the network.*/
 			if (n != null) {
 				int numberOfInputs = (int) n[0];
 				try {
@@ -37,7 +38,7 @@ public class TrainNetwork {
 						float[] coefficients = new float[numberOfInputs];
 						float[] steps = new float[numberOfInputs];
 						byte[][] temp = new byte[numberOfInputs][4];
-						// temporary above, will be transferred to either coefficients or steps.
+						// temp will be transferred to either coefficients or steps.
 						for (int j = 0; j < numberOfInputs; j++) {
 							try {
 								in.read(temp[j], bytePosition, 4);
@@ -65,8 +66,24 @@ public class TrainNetwork {
 					}
 
 				}
+			network=new Network(layers,numberOfInputs,tests,neurons);
 			}
 		}
+		/* If no file exists (in==null), or nothing is in the file (n==null), then we want to create our own network.*/
+		if(in==null || n==null) {
+			if(args.length<2) {
+				try {
+					throw new Exception("Error! Must specify number of inputs and the number of layers.");
+				} catch (Exception e) {
+					e.printStackTrace();
+				}
+			}
+			int numberOfInputs=Integer.parseInt(args[0]);
+			int layers=Integer.parseInt(args[1]);
+			network=new Network(layers,numberOfInputs,tests);
+		}
+		
+		
 
 	}
 
