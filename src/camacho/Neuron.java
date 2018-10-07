@@ -6,12 +6,13 @@ public class Neuron {
 	int numberOfInputs;
 	float[] steps;
 	float[] coefficients;
+	float[] prevCoefficients;
 
 	public Neuron(int arg1) {
 		numberOfInputs = arg1;
 		coefficients = new float[numberOfInputs];
 		for (int i = 0; i < numberOfInputs; i++) {
-			coefficients[i] = (float) Math.random()*2-1;
+			coefficients[i] = (float) Math.random() * 2 - 1;
 		}
 		steps = new float[numberOfInputs];
 		Arrays.fill(steps, 0.1f);
@@ -34,11 +35,17 @@ public class Neuron {
 		for (int i = 0; i < numberOfInputs; i++) {
 			value += coefficients[i] * (args[i] ? 1f : 0f);
 		}
-		value /= (float) numberOfInputs;
 		if (value < 0.5) {
 			return false;
 		}
 		return true;
+	}
+
+	public void step() {
+		prevCoefficients = Arrays.copyOf(coefficients, numberOfInputs);
+		for (int i = 0; i < numberOfInputs; i++) {
+			coefficients[i] += steps[i];
+		}
 	}
 
 	public void changeSteps(boolean b) {
@@ -46,12 +53,12 @@ public class Neuron {
 
 		if (b) {
 			for (int i = 0; i < numberOfInputs; i++) {
-				coefficients[i] += steps[i];
+				coefficients[i] = prevCoefficients[i] + steps[i];
 			}
 		} else {
 			for (int i = 0; i < numberOfInputs; i++) {
 				steps[i] *= -0.5f;
-				coefficients[i] += steps[i];
+				coefficients[i] = prevCoefficients[i] + steps[i];
 			}
 		}
 	}

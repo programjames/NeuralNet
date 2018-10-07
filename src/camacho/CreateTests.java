@@ -8,20 +8,30 @@ import java.util.Arrays;
 public class CreateTests {
 	public static void main(String[] args) {
 
-		FileOutputStream stream=null;
+		FileOutputStream stream = null;
 		try {
-			stream=new FileOutputStream("src\\camacho\\Test.data");
+			stream = new FileOutputStream("src\\camacho\\Test.data");
 		} catch (FileNotFoundException e) {
 			e.printStackTrace();
 		}
-		for(int i=0;i<100;i++) {
+		try {
+			stream.write(5);
+			stream.write(17);
+		} catch (IOException e1) {
+			// TODO Auto-generated catch block
+			e1.printStackTrace();
+		}
+		for (int i = 0; i < 102; i++) {
 			try {
-				byte[] b= {(byte) 255};
-				stream.write(b);
+				stream.write(0);
 			} catch (IOException e) {
 				e.printStackTrace();
 			}
 		}
-		
+		try {
+			stream.close();
+		} catch (IOException e) {
+			e.printStackTrace();
+		}
 	}
 }
