@@ -8,8 +8,17 @@ public class Network {
 	Test[] tests;
 	int testsLength;
 	Neuron[][] connections;
+	boolean isNull = false;
 
-	/* This first network is only for trying the network out, not for training it */
+	/* A "null" network */
+	public Network() {
+		isNull = true;
+	}
+
+	/*
+	 * This following network is only for trying the network out, not for training
+	 * it
+	 */
 	public Network(int arg1, int arg2, Neuron[][] arg4) {
 		layers = arg1;
 		numberOfInputs = arg2;
@@ -22,6 +31,7 @@ public class Network {
 		connections[layers][0] = arg4[layers][0];
 	}
 
+//Used to create a new network
 	public Network(int arg1, int arg2, Test[] arg3) {
 		layers = arg1;
 		numberOfInputs = arg2;
@@ -37,6 +47,7 @@ public class Network {
 
 	}
 
+//Used to recreate a saved network
 	public Network(int arg1, int arg2, Test[] arg3, Neuron[][] arg4) {
 		layers = arg1;
 		numberOfInputs = arg2;

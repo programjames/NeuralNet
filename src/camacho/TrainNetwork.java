@@ -9,6 +9,10 @@ import java.util.Arrays;
 public class TrainNetwork {
 	public static void main(String[] args) {
 		Test[] tests = LoadTests.load();
+		for (int i = 0; i < tests.length; i++) {
+			System.out.println(Arrays.toString(tests[i].inputs));
+			System.out.println(tests[i].endResult);
+		}
 		FileInputStream in = null;
 		try {
 			in = new FileInputStream("src\\camacho\\Network.data");
@@ -25,88 +29,19 @@ public class TrainNetwork {
 			 * Network.data), we want to read the file and get our data back for the
 			 * network.
 			 */
+			network = LoadNetwork.loadFromFile(in, tests);
+			if (network.isNull == false) {
+				layers = network.layers;
+				numberOfInputs = network.numberOfInputs;
+			} else {
+				System.out.println("Failed to load from a file!");
+			}
 			try {
-				numberOfInputs = in.read();
+				in.close();
 			} catch (IOException e1) {
 				e1.printStackTrace();
 			}
-			try {
-				layers = in.read();
-			} catch (IOException e1) {
-				e1.printStackTrace();
-			}
-			if (layers != -1) {
 
-				System.out.println(layers);
-				Neuron[][] neurons = new Neuron[layers + 1][numberOfInputs];
-				int bytePosition = 2;
-				for (int h = 0; h < layers; h++) {
-					for (int i = 0; i < numberOfInputs; i++) {
-						float[] coefficients = new float[numberOfInputs];
-						float[] steps = new float[numberOfInputs];
-						byte[][] temp = new byte[numberOfInputs][4];
-						// temp will be transferred to either coefficients or steps.
-						for (int j = 0; j < numberOfInputs; j++) {
-							try {
-								in.read(temp[j]);
-							} catch (IOException e) {
-								e.printStackTrace();
-							}
-							bytePosition += 4;
-						}
-						for (int j = 0; j < numberOfInputs; j++) {
-							coefficients[j] = decode(temp[j]);
-						}
-						for (int j = 0; j < numberOfInputs; j++) {
-							try {
-								in.read(temp[j]);
-							} catch (IOException e) {
-								e.printStackTrace();
-							}
-							bytePosition += 4;
-						}
-						for (int j = 0; j < numberOfInputs; j++) {
-							steps[j] = decode(temp[j]);
-						}
-						neurons[h][i] = new Neuron(numberOfInputs, coefficients, steps);
-
-					}
-
-				}
-
-				float[] coefficients = new float[numberOfInputs];
-				float[] steps = new float[numberOfInputs];
-				byte[][] temp = new byte[numberOfInputs][4];
-				for (int j = 0; j < numberOfInputs; j++) {
-					try {
-						in.read(temp[j]);
-					} catch (IOException e) {
-						e.printStackTrace();
-					}
-					bytePosition += 4;
-				}
-				for (int j = 0; j < numberOfInputs; j++) {
-					coefficients[j] = decode(temp[j]);
-				}
-				for (int j = 0; j < numberOfInputs; j++) {
-					try {
-						in.read(temp[j]);
-					} catch (IOException e) {
-						e.printStackTrace();
-					}
-					bytePosition += 4;
-				}
-				for (int j = 0; j < numberOfInputs; j++) {
-					steps[j] = decode(temp[j]);
-				}
-				neurons[layers][0] = new Neuron(numberOfInputs, coefficients, steps);
-				network = new Network(layers, numberOfInputs, tests, neurons);
-			}
-		}
-		try {
-			in.close();
-		} catch (IOException e1) {
-			e1.printStackTrace();
 		}
 		/*
 		 * If no file exists (in==null), or nothing is in the file (n==null), then we
@@ -117,7 +52,8 @@ public class TrainNetwork {
 		{
 			if (args.length < 2) {
 				try {
-					throw new Exception("Error! Must specify number of inputs and the number of layers.");
+					throw new Exception(
+							"Error! Must specify number of inputs (first) and the number of layers (second).");
 				} catch (Exception e) {
 					e.printStackTrace();
 				}
@@ -140,14 +76,14 @@ public class TrainNetwork {
 					}
 					network.connections[layer][neuron].step();
 					float endFitness = network.test();
-					if (endFitness > startFitness) {
+					if (endFitness >= startFitness) {
 						network.connections[layer][neuron].changeSteps(true);
 					} else {
 						network.connections[layer][neuron].changeSteps(false);
 					}
 				}
 			}
-			if (counter % 1000 == 0) {
+			if (counter % 1000 == 0 && counter>0) {
 				System.out.println(counter);
 				save(network);
 			}
@@ -173,12 +109,14 @@ public class TrainNetwork {
 		for (int layer = 0; layer < network.layers; layer++) {
 			for (int neuron = 0; neuron < network.numberOfInputs; neuron++) {
 				for (int coeff = 0; coeff < network.numberOfInputs; coeff++) {
+					// Writes out all of the coefficients for the inputs:
 					temp = encode(network.connections[layer][neuron].coefficients[coeff]);
 					try {
 						out.write(temp);
 					} catch (IOException e) {
 						e.printStackTrace();
 					}
+					// Writes out all of the steps for the coefficients and constant:
 					temp = encode(network.connections[layer][neuron].steps[coeff]);
 					try {
 						out.write(temp);
@@ -186,32 +124,44 @@ public class TrainNetwork {
 						e.printStackTrace();
 					}
 				}
+				// Writes out the constant adder for the neuron:
+				temp = encode(network.connections[layer][neuron].constant);
+				try {
+					out.write(temp);
+				} catch (IOException e) {
+					e.printStackTrace();
+				}
 			}
 		}
+		// The following is for the very final neuron:
 		for (int coeff = 0; coeff < network.numberOfInputs; coeff++) {
+			// Writes out all of the coefficients for the inputs:
 			temp = encode(network.connections[network.layers][0].coefficients[coeff]);
 			try {
 				out.write(temp);
 			} catch (IOException e) {
 				e.printStackTrace();
 			}
+			// Writes out all of the steps for the coefficients and constant:
+			temp = encode(network.connections[network.layers][0].steps[coeff]);
+			try {
+				out.write(temp);
+			} catch (IOException e) {
+				e.printStackTrace();
+			}
+		}
+		// Writes out the constant adder for the neuron:
+		temp = encode(network.connections[network.layers][0].constant);
+		try {
+			out.write(temp);
+		} catch (IOException e) {
+			e.printStackTrace();
 		}
 		try {
 			out.close();
 		} catch (IOException e) {
 			e.printStackTrace();
 		}
-	}
-
-	public static float decode(byte[] arg1) {
-		float r = arg1[0] / 64f;
-		r += arg1[1];
-		r /= 64f;
-		r += arg1[2];
-		r /= 64f;
-		r += arg1[3];
-		r /= 64f;
-		return r;
 	}
 
 	public static byte[] encode(float arg1) {

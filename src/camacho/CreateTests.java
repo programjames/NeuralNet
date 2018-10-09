@@ -16,14 +16,21 @@ public class CreateTests {
 		}
 		try {
 			stream.write(5);
-			stream.write(17);
+			stream.write(2);
 		} catch (IOException e1) {
 			// TODO Auto-generated catch block
 			e1.printStackTrace();
 		}
-		for (int i = 0; i < 102; i++) {
+		for (int i = 0; i < 6; i++) {
 			try {
 				stream.write(0);
+			} catch (IOException e) {
+				e.printStackTrace();
+			}
+		}
+		for (int i = 0; i < 6; i++) {
+			try {
+				stream.write(1);
 			} catch (IOException e) {
 				e.printStackTrace();
 			}
