@@ -1,22 +1,24 @@
 package camacho;
 
+import java.io.DataInputStream;
 import java.io.FileInputStream;
 import java.io.IOException;
 import java.util.Arrays;
 
 public class LoadNetwork {
 
-	public static Network loadFromFile(FileInputStream in, Test[] tests) {
+	public static Network loadFromFile(FileInputStream inputstream, Test[] tests) {
+		DataInputStream in = new DataInputStream(inputstream);
 		Network network = null;
 		int layers = -1;
 		int numberOfInputs = -1;
 		try {
-			numberOfInputs = in.read();
+			numberOfInputs = in.readInt();
 		} catch (IOException e1) {
 			e1.printStackTrace();
 		}
 		try {
-			layers = in.read();
+			layers = in.readInt();
 		} catch (IOException e1) {
 			e1.printStackTrace();
 		}
@@ -24,42 +26,30 @@ public class LoadNetwork {
 			return Network();
 		}
 		Neuron[][] neurons = new Neuron[layers + 1][numberOfInputs];
-		int bytePosition = 2;
 		for (int h = 0; h < layers; h++) {
 			for (int i = 0; i < numberOfInputs; i++) {
 				float[] coefficients = new float[numberOfInputs];
-				float[] steps = new float[numberOfInputs];
-				byte[][] temp = new byte[numberOfInputs + 1][4];
-				// temp will be transferred to either coefficients or steps.
+				float[] steps = new float[numberOfInputs + 1];
 				for (int j = 0; j < numberOfInputs; j++) {
 					try {
-						in.read(temp[j]);
+						coefficients[j] = in.readFloat();
 					} catch (IOException e) {
 						e.printStackTrace();
 					}
-					bytePosition += 4;
-				}
-				for (int j = 0; j < numberOfInputs; j++) {
-					coefficients[j] = decode(temp[j]);
 				}
 				for (int j = 0; j < numberOfInputs + 1; j++) {
 					try {
-						in.read(temp[j]);
-					} catch (IOException e) {
+						steps[j] = in.readFloat();
+					} catch (Exception e) {
 						e.printStackTrace();
 					}
-					bytePosition += 4;
 				}
-				for (int j = 0; j < numberOfInputs; j++) {
-					steps[j] = decode(temp[j]);
-				}
-				byte[] temp1 = new byte[4];
+				float constant = 0f;
 				try {
-					in.read(temp1);
+					constant = in.readFloat();
 				} catch (IOException e) {
 					e.printStackTrace();
 				}
-				float constant = decode(temp1);
 				neurons[h][i] = new Neuron(numberOfInputs, coefficients, constant, steps);
 
 			}
@@ -67,38 +57,29 @@ public class LoadNetwork {
 		}
 
 		float[] coefficients = new float[numberOfInputs];
-		float[] steps = new float[numberOfInputs];
-		byte[][] temp = new byte[numberOfInputs + 1][4];
+		float[] steps = new float[numberOfInputs + 1];
 		for (int j = 0; j < numberOfInputs; j++) {
 			try {
-				in.read(temp[j]);
+				coefficients[j] = in.readFloat();
 			} catch (IOException e) {
 				e.printStackTrace();
 			}
-			bytePosition += 4;
-		}
-		for (int j = 0; j < numberOfInputs; j++) {
-			coefficients[j] = decode(temp[j]);
 		}
 		for (int j = 0; j < numberOfInputs + 1; j++) {
 			try {
-				in.read(temp[j]);
+				steps[j] = in.readFloat();
 			} catch (IOException e) {
 				e.printStackTrace();
 			}
-			bytePosition += 4;
 		}
-		for (int j = 0; j < numberOfInputs; j++) {
-			steps[j] = decode(temp[j]);
-		}
-		byte[] temp1 = new byte[4];
+		float constant = 0f;
 		try {
-			in.read(temp1);
+			constant = in.readFloat();
 		} catch (IOException e) {
 			e.printStackTrace();
 		}
-		float constant = decode(temp1);
 		neurons[layers][0] = new Neuron(numberOfInputs, coefficients, constant, steps);
+
 		if (tests != null) {
 			network = new Network(layers, numberOfInputs, tests, neurons);
 		} else {
@@ -109,12 +90,7 @@ public class LoadNetwork {
 		return network;
 	}
 
-	private static camacho.Network Network() {
-		// TODO Auto-generated method stub
-		return null;
-	}
-
-	private static Network Network(boolean b) {
+	private static Network Network() {
 		// TODO Auto-generated method stub
 		return null;
 	}

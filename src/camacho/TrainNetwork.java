@@ -1,5 +1,6 @@
 package camacho;
 
+import java.io.DataOutputStream;
 import java.io.FileInputStream;
 import java.io.FileNotFoundException;
 import java.io.FileOutputStream;
@@ -68,9 +69,6 @@ public class TrainNetwork {
 				for (int neuron = 0; neuron < numberOfInputs; neuron++) {
 					float startFitness = network.test();
 					if (startFitness == 1) {
-						save(network);
-						counter = 100000;
-						System.out.println("Perfected it early.");
 						layer = layers;
 						break;
 					}
@@ -83,6 +81,33 @@ public class TrainNetwork {
 					}
 				}
 			}
+			float startFitness = network.test();
+			if (startFitness == 1) {
+				save(network);
+				for (int i = 0; i < layers; i++) {
+					System.out.println("Layer " + String.valueOf(i));
+					for (int j = 0; j < numberOfInputs; j++) {
+						System.out.println("    Coefficients:  " + Arrays.toString(network.connections[i][j].coefficients));
+						System.out.println("    Constant:      " + network.connections[i][j].constant);
+					}
+				}
+				System.out.println("Final layer");
+				System.out.println("    Coefficients:  " + Arrays.toString(network.connections[layers][0].coefficients));
+				System.out.println("    Constant:      " + network.connections[layers][0].constant);
+				counter = 100000;
+				System.out.println("Perfected it early.");
+				System.out.println(startFitness);
+				break;
+			}
+			network.connections[layers][0].step();
+			float endFitness = network.test();
+			if (endFitness >= startFitness) {
+				network.connections[layers][0].changeSteps(true);
+			} else {
+				network.connections[layers][0].changeSteps(false);
+			}
+			
+			
 			if (counter % 1000 == 0 && counter>0) {
 				System.out.println(counter);
 				save(network);
@@ -91,17 +116,19 @@ public class TrainNetwork {
 	}
 
 	private static void save(Network network) {
-		FileOutputStream out = null;
+		FileOutputStream o = null;
 		try {
-			out = new FileOutputStream("src\\camacho\\Network.data");
+			o = new FileOutputStream("src\\camacho\\Network.data");
 		} catch (FileNotFoundException e) {
 			e.printStackTrace();
 		}
+		DataOutputStream out=new DataOutputStream(o);
 		byte[] temp = new byte[2];
 		temp[0] = (byte) network.numberOfInputs;
 		temp[1] = (byte) network.layers;
 		try {
-			out.write(temp);
+			out.writeInt(network.numberOfInputs);
+			out.writeInt(network.layers);
 		} catch (IOException e) {
 			e.printStackTrace();
 		}
@@ -110,24 +137,23 @@ public class TrainNetwork {
 			for (int neuron = 0; neuron < network.numberOfInputs; neuron++) {
 				for (int coeff = 0; coeff < network.numberOfInputs; coeff++) {
 					// Writes out all of the coefficients for the inputs:
-					temp = encode(network.connections[layer][neuron].coefficients[coeff]);
 					try {
-						out.write(temp);
+						out.writeFloat(network.connections[layer][neuron].coefficients[coeff]);
 					} catch (IOException e) {
 						e.printStackTrace();
 					}
 					// Writes out all of the steps for the coefficients and constant:
-					temp = encode(network.connections[layer][neuron].steps[coeff]);
+					}
+				for(int coeff=0;coeff<network.numberOfInputs+1;coeff++) {
 					try {
-						out.write(temp);
+						out.writeFloat(network.connections[layer][neuron].steps[coeff]);
 					} catch (IOException e) {
 						e.printStackTrace();
 					}
 				}
 				// Writes out the constant adder for the neuron:
-				temp = encode(network.connections[layer][neuron].constant);
 				try {
-					out.write(temp);
+					out.writeFloat(network.connections[layer][neuron].constant);
 				} catch (IOException e) {
 					e.printStackTrace();
 				}
@@ -136,27 +162,27 @@ public class TrainNetwork {
 		// The following is for the very final neuron:
 		for (int coeff = 0; coeff < network.numberOfInputs; coeff++) {
 			// Writes out all of the coefficients for the inputs:
-			temp = encode(network.connections[network.layers][0].coefficients[coeff]);
 			try {
-				out.write(temp);
+				out.writeFloat(network.connections[network.layers][0].coefficients[coeff]);
 			} catch (IOException e) {
 				e.printStackTrace();
 			}
 			// Writes out all of the steps for the coefficients and constant:
-			temp = encode(network.connections[network.layers][0].steps[coeff]);
+			}
+		for(int coeff=0;coeff<network.numberOfInputs+1;coeff++) {
 			try {
-				out.write(temp);
+				out.writeFloat(network.connections[network.layers][0].steps[coeff]);
 			} catch (IOException e) {
 				e.printStackTrace();
 			}
 		}
 		// Writes out the constant adder for the neuron:
-		temp = encode(network.connections[network.layers][0].constant);
 		try {
-			out.write(temp);
+			out.writeFloat(network.connections[network.layers][0].constant);
 		} catch (IOException e) {
 			e.printStackTrace();
 		}
+		
 		try {
 			out.close();
 		} catch (IOException e) {

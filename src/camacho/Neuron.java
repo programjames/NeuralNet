@@ -40,7 +40,7 @@ public class Neuron {
 	public boolean function(boolean[] args) {
 		float value = 0; // return Math.round(value) at the end.
 		for (int i = 0; i < numberOfInputs; i++) {
-			value += coefficients[i] * (args[i] ? 1f : 0f);
+			value += coefficients[i] * (args[i] ? 1f : -1f);
 		}
 		if (value < 0.5) {
 			return false;
@@ -64,7 +64,7 @@ public class Neuron {
 			}
 		} else {
 			for (int i = 0; i < numberOfInputs; i++) {
-				steps[i] *= -0.5f;
+				steps[i] *= -0.7f;
 				coefficients[i] = prevCoefficients[i] + steps[i];
 			}
 		}

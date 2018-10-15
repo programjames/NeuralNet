@@ -49,8 +49,8 @@ public class TestNetwork {
 			System.out.println("Final layer");
 			System.out.println("    Coefficients:  " + Arrays.toString(network.connections[layers][0].coefficients));
 			System.out.println("    Constant:      " + network.connections[layers][0].constant);
-			System.out.println("\nRunning Test (false,false,false,false,false)...\n");
-			boolean[] inputs = { true, true, false, false, false };
+			System.out.println("\nRunning Test...\n");
+			boolean[] inputs = { false,false,false,false,false };
 			network.printTest(inputs);
 			/*
 			 * Scanner scanner = new Scanner(System.in); String line = scanner.nextLine();
